@@ -17,13 +17,13 @@ import (
 
 // Fetcher 拉取数据
 type Fetcher struct {
-	db      *databases.DB
+	db      *databases.ORM
 	conf    *config.Config
 	checker *check.Checker
 }
 
 // NewFetcher 新
-func NewFetcher(db *databases.DB, conf *config.Config, check *check.Checker) *Fetcher {
+func NewFetcher(db *databases.ORM, conf *config.Config, check *check.Checker) *Fetcher {
 	return &Fetcher{
 		db:      db,
 		conf:    conf,
@@ -63,16 +63,16 @@ func (f *Fetcher) FetchAllAndCheck() {
 				return
 			}
 			// 创建或更新 proxy
-			if err := f.db.Mysql.Table("proxy").Where("ip=?", proxy.IP).Where("port=?", proxy.Port).First(&model.Proxy{}).Error; err != nil {
+			if err := f.db.DB.Table("proxy").Where("ip=?", proxy.IP).Where("port=?", proxy.Port).First(&model.Proxy{}).Error; err != nil {
 				if gorm.IsRecordNotFoundError(err) {
-					if err := f.db.Mysql.Omit("ctime", "mtime", "check_time").Create(proxy).Error; err != nil {
+					if err := f.db.DB.Omit("ctime", "mtime", "check_time").Create(proxy).Error; err != nil {
 						log.Errorf("f.db.DB.Create ip:%s, port:%d error:%#v", proxy.IP, proxy.Port, err.Error())
 					}
 				} else {
 					log.Errorf("db.DB.Table first %#v", err.Error())
 				}
 			} else {
-				if err := f.db.Mysql.Table("proxy").Where("ip=?", proxy.IP).Where("port=?", proxy.Port).Omit("ctime", "mtime", "check_time").Updates(map[string]interface{}{
+				if err := f.db.DB.Table("proxy").Where("ip=?", proxy.IP).Where("port=?", proxy.Port).Omit("ctime", "mtime", "check_time").Updates(map[string]interface{}{
 					"schema":     proxy.Schema,
 					"is_deleted": false,
 				}).Error; err != nil {

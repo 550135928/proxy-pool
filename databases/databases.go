@@ -1,29 +1,26 @@
 package databases
 
 import (
-	"fmt"
 	"log"
 	"proxy-pool/config"
 	"proxy-pool/model"
 
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-// DB 结构体
-type DB struct {
-	Mysql *gorm.DB
+// ORM 结构体
+type ORM struct {
+	DB *gorm.DB
 }
 
-// New 初始化gorm db
-func New(mysql *config.MysqlConfig) *DB {
+// New 数据库使用sqlite
+func New(config *config.Config) *ORM {
 
 	var err error
 	var db *gorm.DB
 
-	sqlString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-		mysql.Username, mysql.Password, mysql.Host, mysql.Port, mysql.Database)
-	fmt.Println(sqlString)
-	db, err = gorm.Open("mysql", sqlString)
+	db, err = gorm.Open("sqlite3", config.Sqlite.DBFilePath)
 	// TODO: to config file
 	db.LogMode(true)
 	if err != nil {
@@ -34,5 +31,10 @@ func New(mysql *config.MysqlConfig) *DB {
 		log.Fatalf("mysql create table err:%#v", err)
 	}
 
-	return &DB{Mysql: db}
+	return &ORM{DB: db}
+}
+
+// Close close
+func (o *ORM) Close() {
+	o.DB.Close()
 }

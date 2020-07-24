@@ -10,12 +10,12 @@ import (
 )
 
 var conf *config.Config
-var db *databases.DB
+var db *databases.ORM
 var checker *Checker
 
 func TestMain(m *testing.M) {
 	conf = config.New()
-	db = databases.New(conf.Mysql)
+	db = databases.New(conf)
 	checker = NewChecker(db, conf)
 
 	os.Exit(m.Run())

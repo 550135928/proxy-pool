@@ -1,6 +1,9 @@
 HTTP:
   Port: :9001
 
+Sqlite:
+  DBFilePath: ./proxy-pool.db
+
 VerifyURL:
   HTTP: http://httpbin.org/get
   HTTPS: https://httpbin.org/get

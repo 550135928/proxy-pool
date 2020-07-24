@@ -13,12 +13,12 @@ import (
 
 // Checker 检查IP可用性
 type Checker struct {
-	DB   *databases.DB
+	DB   *databases.ORM
 	Conf *config.Config
 }
 
 // NewChecker 检查IP可用性
-func NewChecker(db *databases.DB, conf *config.Config) *Checker {
+func NewChecker(db *databases.ORM, conf *config.Config) *Checker {
 	return &Checker{
 		DB:   db,
 		Conf: conf,
@@ -32,7 +32,7 @@ func (c *Checker) CheckAll() {
 	ch := make(chan struct{}, c.Conf.CheckProxy.GoroutineNumber)
 
 	proxys := make([]*model.Proxy, 64)
-	if err := c.DB.Mysql.Where("is_deleted=?", 0).Find(&proxys).Error; err != nil {
+	if err := c.DB.DB.Where("is_deleted=?", 0).Find(&proxys).Error; err != nil {
 		log.Errorf("get proxys from db %#v", err.Error())
 		return
 	}
@@ -48,7 +48,7 @@ func (c *Checker) CheckAll() {
 			// 代理失效 标记删除
 			if err != nil || !ok {
 				fmt.Println(proxy.ID, proxy.IP)
-				if err := c.DB.Mysql.Table("proxy").
+				if err := c.DB.DB.Table("proxy").
 					Where("id=?", proxy.ID).
 					Updates(map[string]interface{}{"is_deleted": true}).Error; err != nil {
 					log.Errorf("update error %#v", err.Error())
@@ -56,7 +56,7 @@ func (c *Checker) CheckAll() {
 				log.Infof("proxy check faild, IP:%s, Port:%d, ok:%t\n", proxy.IP, proxy.Port, ok)
 			} else {
 				// 可用更新check时间
-				err := c.DB.Mysql.Table("proxy").Where("id=?", proxy.ID).Updates(map[string]interface{}{"check_time": time.Now()}).Error
+				err := c.DB.DB.Table("proxy").Where("id=?", proxy.ID).Updates(map[string]interface{}{"check_time": time.Now().UTC().Truncate}).Error
 				if err != nil {
 					log.Infof("Updates check_time faild %#v", err.Error())
 				}

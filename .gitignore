@@ -1,6 +1,7 @@
 # vscode
 .vscode/
-
+# sqlite db
+proxy-pool.db
 
 # Binaries for programs and plugins
 *.exe

@@ -40,7 +40,7 @@ func Test_GetIPKu(t *testing.T) {
 
 func Test_FetchAllAndCheck(t *testing.T) {
 	conf := config.New()
-	db := databases.New(conf.Mysql)
+	db := databases.New(conf)
 	checker := check.NewChecker(db, conf)
 	fetcher := NewFetcher(db, conf, checker)
 	fetcher.FetchAllAndCheck()

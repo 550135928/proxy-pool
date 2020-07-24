@@ -12,12 +12,12 @@ import (
 
 // Service http handle
 type Service struct {
-	db   *databases.DB
+	db   *databases.ORM
 	conf *config.Config
 }
 
 // NewService service
-func NewService(db *databases.DB, conf *config.Config) *Service {
+func NewService(db *databases.ORM, conf *config.Config) *Service {
 	return &Service{
 		db:   db,
 		conf: conf,
@@ -47,21 +47,19 @@ func (p *ProxyRsp) CopyFromProxy(proxy *model.Proxy) {
 // GetOneProxy 获取一个代理
 func (s *Service) GetOneProxy(c context.Context) (*ProxyRsp, error) {
 	rsp := &ProxyRsp{}
-	if err := s.db.Mysql.Raw(`SELECT r1.id, r1.schema, r1.ip, r1.port,
-		r1.check_time FROM proxy AS r1
-		JOIN (SELECT CEIL(RAND() * (SELECT MAX(id) FROM proxy)) AS id) AS r2
-			WHERE r1.id >= r2.id and r1.is_deleted=0
-			ORDER BY r1.id ASC LIMIT 1`).
+	if err := s.db.DB.Raw(`SELECT r1.id, r1.schema, r1.ip, r1.port,
+	r1.check_time FROM proxy r1 order by RANDOM() LIMIT 1`).
 		Row().Scan(&rsp.ID, &rsp.Schema, &rsp.IP, &rsp.Port, &rsp.CheckTime); err != nil {
 		return nil, NoFound
 	}
+	// rsp.CheckTime =
 	return rsp, nil
 }
 
 // GetAllProxy 获取所有代理
 func (s *Service) GetAllProxy(c context.Context) ([]*ProxyRsp, error) {
 	var rsps = make([]*ProxyRsp, 0)
-	if err := s.db.Mysql.Table("proxy").
+	if err := s.db.DB.Table("proxy").
 		Select([]string{"id", "ip", "`port`", "`schema`", "check_time"}).
 		Where("is_deleted=?", 0).
 		Find(&rsps).Error; err != nil {
@@ -72,7 +70,7 @@ func (s *Service) GetAllProxy(c context.Context) ([]*ProxyRsp, error) {
 
 // DeleteOneProxy 删除一个代理
 func (s *Service) DeleteOneProxy(c context.Context, id int) error {
-	if err := s.db.Mysql.Table("proxy").
+	if err := s.db.DB.Table("proxy").
 		Where("id=?", id).
 		Updates(map[string]interface{}{"is_deleted": 1}).
 		Error; err != nil {

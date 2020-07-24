@@ -10,6 +10,7 @@ import (
 // Config 配置结构体
 type Config struct {
 	Mysql      *MysqlConfig
+	Sqlite     *Sqlite
 	VerifyURL  *VerifyURL
 	CheckProxy *CheckProxy
 	FetchProxy *FetchProxy
@@ -46,6 +47,11 @@ type MysqlConfig struct {
 	Username string
 	Password string
 	Database string
+}
+
+// Sqlite db文件
+type Sqlite struct {
+	DBFilePath string
 }
 
 // New 创建一个config
